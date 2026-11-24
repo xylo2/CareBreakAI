@@ -34,9 +34,9 @@ cd CareBreakAI
 3. Cliquer sur **Charger l'extension non empaquetée** et sélectionner la racine du dépôt (`CareBreakAI/`).
 
 ### Firefox
-1. Générer les packages via `python .\tools\build_zip.py` (crée `dist/carebreak-firefox-v1.2.1.zip` avec l'identifiant `carebreak@iclore.fr`).
+1. Générer les packages via `python .\tools\build_zip.py` (crée `dist/carebreak-firefox-v1.2.2.zip` avec l'identifiant `carebreak@iclore.fr`).
 2. Ouvrir `about:debugging#/runtime/this-firefox` dans Firefox.
-3. Cliquer sur **Charger un module complémentaire temporaire…** et sélectionner `dist/carebreak-firefox-v1.2.1.zip`.
+3. Cliquer sur **Charger un module complémentaire temporaire…** et sélectionner `dist/carebreak-firefox-v1.2.2.zip`.
 
 ## Tests unitaires & Packaging pour les stores
 
@@ -54,8 +54,8 @@ python .\tools\generate_store_assets.py
 
 ### Publication sur les boutiques (Chrome, Edge & Firefox)
 
-- **Chrome Web Store & Microsoft Edge Add-ons** : téléverser `dist/carebreak-chrome-v1.2.1.zip` (Manifest V3 standard avec `service_worker`).
-- **Firefox Add-ons (AMO)** : téléverser `dist/carebreak-firefox-v1.2.1.zip` (Manifest V3 adapté automatiquement avec `background.scripts` et `browser_specific_settings.gecko.id = "carebreak@iclore.fr"`).
+- **Chrome Web Store & Microsoft Edge Add-ons** : téléverser `dist/carebreak-chrome-v1.2.2.zip` (Manifest V3 standard avec `service_worker`).
+- **Firefox Add-ons (AMO)** : téléverser `dist/carebreak-firefox-v1.2.2.zip` (Manifest V3 adapté automatiquement avec `background.scripts` et `browser_specific_settings.gecko.id = "carebreak@iclore.fr"`).
 - **Visuels générés en PNG 24 bits sans alpha** (`python .\tools\generate_store_assets.py`) :
   - `dist/store_assets/edge-logo-300x300.png` (logo store `300×300 px` requis par Microsoft Edge Add-ons).
   - `dist/store_assets/small-tile-440x280.png` (vignette promotionnelle `440×280 px` pour Chrome Web Store & Edge).
@@ -106,9 +106,9 @@ cd CareBreakAI
 3. Click **Load unpacked** and select the repository root folder (`CareBreakAI/`).
 
 ### Firefox
-1. Build the release archives with `python .\tools\build_zip.py` (creates `dist/carebreak-firefox-v1.2.1.zip` with ID `carebreak@iclore.fr`).
+1. Build the release archives with `python .\tools\build_zip.py` (creates `dist/carebreak-firefox-v1.2.2.zip` with ID `carebreak@iclore.fr`).
 2. Open `about:debugging#/runtime/this-firefox` in Firefox.
-3. Click **Load Temporary Add-on…** and select `dist/carebreak-firefox-v1.2.1.zip`.
+3. Click **Load Temporary Add-on…** and select `dist/carebreak-firefox-v1.2.2.zip`.
 
 ## Unit Tests & Store Packaging
 
@@ -126,8 +126,8 @@ python .\tools\generate_store_assets.py
 
 ### Store Submission (Chrome, Edge & Firefox)
 
-- **Chrome Web Store & Microsoft Edge Add-ons**: upload `dist/carebreak-chrome-v1.2.1.zip` (standard Manifest V3 with `service_worker`).
-- **Firefox Add-ons (AMO)**: upload `dist/carebreak-firefox-v1.2.1.zip` (Manifest V3 automatically adapted with `background.scripts` and `browser_specific_settings.gecko.id = "carebreak@iclore.fr"`).
+- **Chrome Web Store & Microsoft Edge Add-ons**: upload `dist/carebreak-chrome-v1.2.2.zip` (standard Manifest V3 with `service_worker`).
+- **Firefox Add-ons (AMO)**: upload `dist/carebreak-firefox-v1.2.2.zip` (Manifest V3 automatically adapted with `background.scripts` and `browser_specific_settings.gecko.id = "carebreak@iclore.fr"`).
 - **Generated 24-bit Alpha-Free PNG Store Assets** (`python .\tools\generate_store_assets.py`):
   - `dist/store_assets/edge-logo-300x300.png` (`300×300 px` store logo required by Microsoft Edge Add-ons).
   - `dist/store_assets/small-tile-440x280.png` (`440×280 px` small promotional tile for Chrome Web Store & Edge).

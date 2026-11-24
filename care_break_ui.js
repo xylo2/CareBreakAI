@@ -73,14 +73,22 @@ class CareBreakUI {
       window.addEventListener("pointerup", onUp);
     });
   }
+  getHostRoot() {
+    if (typeof document === "undefined") return null;
+    return document.fullscreenElement || document.body || null;
+  }
+
   getContainer() {
-    if (typeof document === "undefined" || !document.body) return null;
+    const host = this.getHostRoot();
+    if (!host) return null;
     let stack = document.querySelector(".gmc-break-stack");
     if (!stack) {
       stack = document.createElement("div");
       stack.className = "gmc-break-stack";
       stack.setAttribute?.("aria-live", "polite");
-      document.body.appendChild(stack);
+      host.appendChild(stack);
+    } else if (stack.parentNode !== host) {
+      host.appendChild(stack);
     }
     this.makeStackDraggable(stack);
     this.applyStackPosition(stack);

@@ -14,6 +14,14 @@ test("content.js : pastille repas, drag-and-drop, activité et synchronisation s
   let storageGetCb = null;
   let nextReply = { state: { moveStart: Date.now(), lastActivity: Date.now() }, settings: { enableLunch: true } };
 
+  let clearedPrevTimer = false;
+  sandbox.window.__cbBreakTimer = 999;
+  const origClear = sandbox.clearInterval;
+  sandbox.clearInterval = (id) => {
+    if (id === 999) clearedPrevTimer = true;
+    origClear(id);
+  };
+
   sandbox.chrome.runtime = {
     id: "ext-test-id",
     lastError: null,
@@ -29,15 +37,17 @@ test("content.js : pastille repas, drag-and-drop, activité et synchronisation s
   const contentCode = fs.readFileSync(contentFile, "utf-8");
   vm.runInContext(contentCode, sandbox, { filename: contentFile });
 
+  assert.equal(clearedPrevTimer, true);
   assert.equal(sentMessages.at(0).type, "BREAK_ACTIVITY");
   const mealPill = allNodes.find((n) => n.className === "gmc-break-lunch-pill");
   assert.ok(mealPill);
 
   if (storageGetCb) {
     storageGetCb(null);
-    storageGetCb({ careBreakLunchPos: { x: "invalid" } });
+    storageGetCb({ careBreakLunchPos: { x: "invalid" }, careBreakStackPos: null });
     storageGetCb({
       careBreakSettings: { lunchStartHour: 0, lunchEndHour: 24, enableLunch: true },
+      careBreakState: { moveStart: Date.now(), lastActivity: Date.now() },
       careBreakLunchPos: { x: 40, y: 50 },
       careBreakStackPos: { x: 20, y: 30 }
     });
@@ -85,8 +95,9 @@ test("content.js : pastille repas, drag-and-drop, activité et synchronisation s
   sandbox.document.hidden = false;
   nextReply = null;
   docListeners.visibilitychange();
+  if (storageGetCb) storageGetCb({});
   nextReply = { settings: { enableLunch: false } };
-  docListeners.visibilitychange();
+  winListeners.focus();
   const nowDate = new Date();
   const todayKey = `${nowDate.getFullYear()}-${nowDate.getMonth() + 1}-${nowDate.getDate()}`;
   nextReply = { moveStart: Date.now(), lastActivity: Date.now(), lunchTakenDate: todayKey };
@@ -95,6 +106,12 @@ test("content.js : pastille repas, drag-and-drop, activité et synchronisation s
   docListeners.visibilitychange();
   sandbox.chrome.runtime.lastError = null;
   assert.equal(sentMessages.at(-1).type, "BREAK_GET_STATE");
+
+  storageChangedFn({
+    careBreakSettings: { newValue: { enableLunch: true, lunchStartHour: 0, lunchEndHour: 24, lunchRepeatMinutes: 1, enableDinner: false, enableNight: false } },
+    careBreakState: { newValue: { moveStart: Date.now(), lastActivity: Date.now(), lunchWindowStart: Date.now() - 120_000 } }
+  }, "local");
+  assert.equal(mealPill.style.display, "none");
 
   storageChangedFn({ careBreakSettings: { newValue: { enableLunch: false } } }, "sync");
   storageChangedFn({
@@ -116,6 +133,15 @@ test("content.js : pastille repas, drag-and-drop, activité et synchronisation s
   assert.ok(sentMessages.some((m) => m.type === "BREAK_NIGHT_SHOWN"));
 
   const nightBanner = allNodes.find((n) => n.dataset.gmcBreakType === "night" && !n.removed);
+  const stackEl = allNodes.find((n) => n.className === "gmc-break-stack" && !n.removed);
+  const fsHost = { children: [], appendChild(c) { this.children.push(c); c.parentNode = this; } };
+  sandbox.document.fullscreenElement = fsHost;
+  docListeners.fullscreenchange();
+  assert.ok(fsHost.children.includes(mealPill));
+  if (stackEl) assert.ok(fsHost.children.includes(stackEl));
+  sandbox.document.fullscreenElement = null;
+  docListeners.fullscreenchange();
+
   nightBanner.children.at(1).children.at(0).listeners.click();
   assert.ok(sentMessages.some((m) => m.type === "BREAK_ACK" && m.alertType === "night"));
 
@@ -133,14 +159,25 @@ test("content.js : pastille repas, drag-and-drop, activité et synchronisation s
   }, "local");
   assert.equal(mealPill.style.display, "none");
 
-  const stackEl = allNodes.find((n) => n.className === "gmc-break-stack");
   if (stackEl) stackEl.removed = true;
   winListeners.resize();
   timers.at(0).fn();
+
+  const savedBody = sandbox.document.body;
+  sandbox.document.body = null;
+  docListeners.fullscreenchange();
+  sandbox.document.body = savedBody;
 
   sandbox.chrome.runtime.id = null;
   docListeners.click();
   sandbox.chrome.runtime.id = "ext-test-id";
   sandbox.chrome.runtime.sendMessage = () => { throw new Error("context invalidated"); };
   docListeners.visibilitychange();
+});
+
+test("content.js : garde-fou d'initialisation double (__cbBreakInit)", () => {
+  const { sandbox } = createDomSandbox();
+  sandbox.window.__cbBreakInit = true;
+  const contentFile = path.join(EXT_DIR, "content.js");
+  vm.runInContext(fs.readFileSync(contentFile, "utf-8"), sandbox, { filename: contentFile });
 });

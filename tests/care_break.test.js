@@ -80,6 +80,13 @@ test("GlobalCareBreak et CareBreakUI : alertes, DOM, drag-and-drop et minuteur",
   guard.syncDom();
 
   const stack = allNodes.find((n) => n.className === "gmc-break-stack");
+  const fsHost = { children: [], appendChild(c) { this.children.push(c); c.parentNode = this; } };
+  sandbox.document.fullscreenElement = fsHost;
+  guard.getContainer();
+  assert.ok(fsHost.children.includes(stack));
+  sandbox.document.fullscreenElement = null;
+  guard.getContainer();
+
   guard.setStackPosition({ x: 25, y: 35 });
   stack.listeners.pointerdown({ button: 1 });
   stack.listeners.pointerdown({ button: 0, clientX: 120, clientY: 100 });
@@ -166,6 +173,7 @@ test("GlobalCareBreak et CareBreakUI : alertes, DOM, drag-and-drop et minuteur",
   const savedDoc = sandbox.document;
   delete sandbox.document;
   guard.setStackPosition({ x: 5, y: 5 });
+  assert.equal(guard.getContainer(), null);
   guard.syncDom();
   sandbox.document = savedDoc;
 

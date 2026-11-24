@@ -73,5 +73,5 @@ No personal data collected, no account required, and zero external network reque
 1. Exécuter les tests unitaires : `python .\tools\run_tests_clip.py`
 2. Vérifier la présence des icônes : `icons/icon16.png`, `icons/icon48.png`, `icons/icon128.png`
 3. Générer les packages `.zip` et les visuels PNG 24 bits sans alpha :
-   - `python .\tools\build_zip.py` (`dist/carebreak-chrome-v1.2.1.zip`, `dist/carebreak-firefox-v1.2.1.zip`)
+   - `python .\tools\build_zip.py` (`dist/carebreak-chrome-v1.2.2.zip`, `dist/carebreak-firefox-v1.2.2.zip`)
    - `python .\tools\generate_store_assets.py` (`edge-logo-300x300.png`, `small-tile-440x280.png`, `store-screenshot-1280x800.png`)

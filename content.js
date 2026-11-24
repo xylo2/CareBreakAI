@@ -39,6 +39,13 @@ if (!window.__cbBreakInit) {
   let customPillPos = null;
   let wasDragged = false;
 
+  const attachOverlaysToHost = () => {
+    const host = document.fullscreenElement || document.body;
+    if (host && mealPill.parentNode !== host) host.appendChild(mealPill);
+    const stack = document.querySelector(".gmc-break-stack");
+    if (host && stack && stack.parentNode !== host) host.appendChild(stack);
+  };
+
   const applyPillPosition = () => {
     if (!customPillPos) {
       mealPill.style.left = "24px";
@@ -57,15 +64,24 @@ if (!window.__cbBreakInit) {
     mealPill.style.transform = "none";
   };
 
-  chrome.storage?.local?.get(["careBreakLunchPos", "careBreakStackPos", "careBreakSettings"], (res) => {
-    if (res?.careBreakSettings) guard.applySettings(res.careBreakSettings);
-    if (res?.careBreakLunchPos && typeof res.careBreakLunchPos.x === "number") {
-      customPillPos = res.careBreakLunchPos;
-      applyPillPosition();
-    }
-    if (res?.careBreakStackPos) guard.setStackPosition(res.careBreakStackPos);
-  });
-
+  const syncFromStorage = (withPositions = false) => {
+    const keys = withPositions
+      ? ["careBreakState", "careBreakSettings", "careBreakLunchPos", "careBreakStackPos"]
+      : ["careBreakState", "careBreakSettings"];
+    chrome.storage?.local?.get(keys, (res) => {
+      if (!res) return;
+      if (withPositions) {
+        if (res.careBreakLunchPos && typeof res.careBreakLunchPos.x === "number") {
+          customPillPos = res.careBreakLunchPos;
+          applyPillPosition();
+        }
+        if (res.careBreakStackPos) guard.setStackPosition(res.careBreakStackPos);
+      }
+      if (res.careBreakSettings) guard.applySettings(res.careBreakSettings);
+      if (res.careBreakState) guard.setState(res.careBreakState);
+      updateMealPill();
+    });
+  };
   mealPill.addEventListener("pointerdown", (e) => {
     if (e.button !== 0 || e.target?.closest?.("button")) return;
     const rect = mealPill.getBoundingClientRect();
@@ -103,11 +119,15 @@ if (!window.__cbBreakInit) {
     mealPill.addEventListener("pointerup", onUp);
     mealPill.addEventListener("pointercancel", onUp);
   });
+
   window.addEventListener("resize", () => {
     if (mealPill.style.display !== "none") applyPillPosition();
     const stack = document.querySelector(".gmc-break-stack");
     if (stack) guard.applyStackPosition(stack);
   });
+
+  document.addEventListener("fullscreenchange", attachOverlaysToHost);
+
   let lastRenderedMealType = null;
 
   const applyMealPillGradient = (mealType) => {
@@ -123,6 +143,7 @@ if (!window.__cbBreakInit) {
   };
 
   const updateMealPill = () => {
+    attachOverlaysToHost();
     if (guard.isDndActive()) {
       mealPill.style.display = "none";
       lastRenderedMealType = null;
@@ -198,10 +219,17 @@ if (!window.__cbBreakInit) {
     }
   });
 
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) sendMsg({ type: "BREAK_GET_STATE" }, syncReply);
-  });
+  const handleTabResume = () => {
+    if (document.hidden) return;
+    attachOverlaysToHost();
+    syncFromStorage(false);
+    sendMsg({ type: "BREAK_GET_STATE" }, syncReply);
+  };
 
+  document.addEventListener("visibilitychange", handleTabResume);
+  window.addEventListener("focus", handleTabResume);
+
+  syncFromStorage(true);
   sendMsg({ type: "BREAK_ACTIVITY" }, syncReply);
 
   window.__cbBreakTimer = setInterval(() => {
