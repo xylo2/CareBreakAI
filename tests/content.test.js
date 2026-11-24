@@ -34,6 +34,8 @@ test("content.js : pastille repas, drag-and-drop, activité et synchronisation s
   assert.ok(mealPill);
 
   if (storageGetCb) {
+    storageGetCb(null);
+    storageGetCb({ careBreakLunchPos: { x: "invalid" } });
     storageGetCb({
       careBreakSettings: { lunchStartHour: 0, lunchEndHour: 24, enableLunch: true },
       careBreakLunchPos: { x: 40, y: 50 },
@@ -47,11 +49,20 @@ test("content.js : pastille repas, drag-and-drop, activité et synchronisation s
   mealPill.closest = () => ({ tagName: "BUTTON" });
   mealPill.listeners.pointerdown({ button: 0, clientX: 50, clientY: 60, pointerId: 1 });
   mealPill.closest = () => null;
-  mealPill.setPointerCapture = () => { throw new Error("unsupported"); };
-  mealPill.releasePointerCapture = () => { throw new Error("unsupported"); };
   mealPill.listeners.pointerdown({ button: 1 });
   mealPill.listeners.pointerdown({ button: 0, clientX: 50, clientY: 60, pointerId: 1 });
   mealPill.listeners.pointermove({ clientX: 51, clientY: 61 });
+  mealPill.listeners.pointerup({ pointerId: 1 });
+
+  mealPill.setPointerCapture = () => {};
+  mealPill.releasePointerCapture = () => {};
+  mealPill.listeners.pointerdown({ button: 0, clientX: 50, clientY: 60, pointerId: 1 });
+  mealPill.listeners.pointermove({ clientX: 70, clientY: 85 });
+  mealPill.listeners.pointerup({ pointerId: 1 });
+
+  mealPill.setPointerCapture = () => { throw new Error("unsupported"); };
+  mealPill.releasePointerCapture = () => { throw new Error("unsupported"); };
+  mealPill.listeners.pointerdown({ button: 0, clientX: 50, clientY: 60, pointerId: 1 });
   mealPill.listeners.pointermove({ clientX: 80, clientY: 95 });
   mealPill.listeners.pointerup({ pointerId: 1 });
   assert.ok(savedStorage.some((item) => item.careBreakLunchPos));
@@ -76,13 +87,40 @@ test("content.js : pastille repas, drag-and-drop, activité et synchronisation s
   docListeners.visibilitychange();
   nextReply = { settings: { enableLunch: false } };
   docListeners.visibilitychange();
-  nextReply = { moveStart: Date.now(), lastActivity: Date.now() };
+  const nowDate = new Date();
+  const todayKey = `${nowDate.getFullYear()}-${nowDate.getMonth() + 1}-${nowDate.getDate()}`;
+  nextReply = { moveStart: Date.now(), lastActivity: Date.now(), lunchTakenDate: todayKey };
   docListeners.visibilitychange();
+  sandbox.chrome.runtime.lastError = { message: "err" };
+  docListeners.visibilitychange();
+  sandbox.chrome.runtime.lastError = null;
   assert.equal(sentMessages.at(-1).type, "BREAK_GET_STATE");
 
   storageChangedFn({ careBreakSettings: { newValue: { enableLunch: false } } }, "sync");
   storageChangedFn({
-    careBreakSettings: { newValue: { enableLunch: false, enableDinner: true, dinnerStartHour: 0, dinnerEndHour: 24 } }
+    careBreakSettings: {
+      newValue: {
+        enableLunch: true,
+        lunchStartHour: 0,
+        lunchEndHour: 24,
+        enableDinner: true,
+        dinnerStartHour: 0,
+        dinnerEndHour: 24,
+        enableNight: true,
+        nightStartHour: 0,
+        nightEndHour: 23,
+        nightEndMinute: 59
+      }
+    }
+  }, "local");
+  assert.ok(sentMessages.some((m) => m.type === "BREAK_NIGHT_SHOWN"));
+
+  const nightBanner = allNodes.find((n) => n.dataset.gmcBreakType === "night" && !n.removed);
+  nightBanner.children.at(1).children.at(0).listeners.click();
+  assert.ok(sentMessages.some((m) => m.type === "BREAK_ACK" && m.alertType === "night"));
+
+  storageChangedFn({
+    careBreakSettings: { newValue: { enableLunch: false, enableDinner: true, dinnerStartHour: 0, dinnerEndHour: 24, enableNight: false } }
   }, "local");
   assert.equal(mealPill.dataset.gmcMealType, "dinner");
   winListeners.resize();
@@ -95,15 +133,14 @@ test("content.js : pastille repas, drag-and-drop, activité et synchronisation s
   }, "local");
   assert.equal(mealPill.style.display, "none");
 
+  const stackEl = allNodes.find((n) => n.className === "gmc-break-stack");
+  if (stackEl) stackEl.removed = true;
   winListeners.resize();
   timers.at(0).fn();
 
-  vm.runInContext(contentCode, sandbox, { filename: contentFile });
-  delete sandbox.window.__cbBreakInit;
   sandbox.chrome.runtime.id = null;
-  vm.runInContext(contentCode, sandbox, { filename: contentFile });
-  delete sandbox.window.__cbBreakInit;
+  docListeners.click();
   sandbox.chrome.runtime.id = "ext-test-id";
   sandbox.chrome.runtime.sendMessage = () => { throw new Error("context invalidated"); };
-  vm.runInContext(contentCode, sandbox, { filename: contentFile });
+  docListeners.visibilitychange();
 });

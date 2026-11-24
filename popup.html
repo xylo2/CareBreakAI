@@ -88,7 +88,7 @@
     <div class="grid-3">
       <div>
         <label for="moveMinutes" data-i18n="fldMoveMin">Move (min)</label>
-        <input id="moveMinutes" type="number" min="1" max="480" />
+        <input id="moveMinutes" type="number" min="1" max="240" />
       </div>
       <div>
         <label for="drinkMinutes" data-i18n="fldDrinkMin">Drink (min)</label>
@@ -96,10 +96,11 @@
       </div>
       <div>
         <label for="idleResetMinutes" data-i18n="fldIdleMin">Idle reset (min)</label>
-        <input id="idleResetMinutes" type="number" min="1" max="240" />
+        <input id="idleResetMinutes" type="number" min="1" max="120" />
       </div>
     </div>
   </div>
+
   <div class="card">
     <div class="section-title c-eyes" data-i18n="secEyesPosture">👀 Eye Break (20-20-20) &amp; Posture</div>
     <div class="toggle-row">
@@ -109,11 +110,11 @@
     <div class="grid-2">
       <div>
         <label for="eyesMinutes" data-i18n="fldEyesMin">20-20-20 Eyes (min)</label>
-        <input id="eyesMinutes" type="number" min="1" max="240" />
+        <input id="eyesMinutes" type="number" min="1" max="180" />
       </div>
       <div>
         <label for="postureMinutes" data-i18n="fldPostureMin">Posture (min)</label>
-        <input id="postureMinutes" type="number" min="1" max="480" />
+        <input id="postureMinutes" type="number" min="1" max="240" />
       </div>
     </div>
   </div>
@@ -127,11 +128,11 @@
     <div class="grid-3" style="margin-bottom: 6px;">
       <div>
         <label for="lunchStartHour" data-i18n="fldLunchStart">Lunch start (h)</label>
-        <input id="lunchStartHour" type="number" min="0" max="23" />
+        <input id="lunchStartHour" type="number" min="0" max="22" />
       </div>
       <div>
         <label for="lunchEndHour" data-i18n="fldLunchEnd">Lunch end (h)</label>
-        <input id="lunchEndHour" type="number" min="1" max="24" />
+        <input id="lunchEndHour" type="number" min="1" max="23" />
       </div>
       <div>
         <label for="lunchRepeatMinutes" data-i18n="fldLunchRep">Lunch delay (min)</label>
@@ -141,11 +142,11 @@
     <div class="grid-3">
       <div>
         <label for="dinnerStartHour" data-i18n="fldDinnerStart">Dinner start (h)</label>
-        <input id="dinnerStartHour" type="number" min="0" max="23" />
+        <input id="dinnerStartHour" type="number" min="0" max="22" />
       </div>
       <div>
         <label for="dinnerEndHour" data-i18n="fldDinnerEnd">Dinner end (h)</label>
-        <input id="dinnerEndHour" type="number" min="1" max="24" />
+        <input id="dinnerEndHour" type="number" min="1" max="23" />
       </div>
       <div>
         <label for="dinnerRepeatMinutes" data-i18n="fldDinnerRep">Dinner delay (min)</label>
@@ -163,7 +164,7 @@
     <div class="grid-2" style="margin-bottom: 6px;">
       <div>
         <label for="windDownHour" data-i18n="fldWindHour">Wind-down (h)</label>
-        <input id="windDownHour" type="number" min="0" max="23" />
+        <input id="windDownHour" type="number" min="15" max="23" />
       </div>
       <div>
         <label for="windDownMinute" data-i18n="fldWindMin">Wind-down (min)</label>
@@ -187,15 +188,15 @@
     <div class="grid-3">
       <div>
         <label for="nightRepeat0h" data-i18n="fldNightRep0">Before 1am (min)</label>
-        <input id="nightRepeat0h" type="number" min="1" max="120" />
+        <input id="nightRepeat0h" type="number" min="1" max="60" />
       </div>
       <div>
         <label for="nightRepeat1h" data-i18n="fldNightRep1">At 1am (min)</label>
-        <input id="nightRepeat1h" type="number" min="1" max="120" />
+        <input id="nightRepeat1h" type="number" min="1" max="60" />
       </div>
       <div>
         <label for="nightRepeat2h" data-i18n="fldNightRep2">From 2am (min)</label>
-        <input id="nightRepeat2h" type="number" min="1" max="120" />
+        <input id="nightRepeat2h" type="number" min="1" max="60" />
       </div>
     </div>
   </div>

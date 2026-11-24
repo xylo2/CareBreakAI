@@ -15,6 +15,7 @@ test("popup.js : initialisation DOM, boutons DND, sauvegarde et réinitialisatio
   const docListeners = {};
   const sentMessages = [];
   let timeoutFn = null;
+  let storedState = { dndUntil: 0 };
 
   const mk = (id, type = "number") => ({
     id, type, value: "", checked: false, disabled: false, textContent: "", style: {},
@@ -52,7 +53,7 @@ test("popup.js : initialisation DOM, boutons DND, sauvegarde et réinitialisatio
         local: {
           get: (_keys, cb) => cb({
             careBreakSettings: { enableMove: false, moveMinutes: 45 },
-            careBreakState: { dndUntil: Date.now() + 120_000 }
+            careBreakState: storedState
           }),
           remove: (_keys, cb) => cb()
         }
@@ -69,6 +70,10 @@ test("popup.js : initialisation DOM, boutons DND, sauvegarde et réinitialisatio
   vm.createContext(sandbox);
   vm.runInContext(code, sandbox, { filename: popupFile });
 
+  docListeners.DOMContentLoaded();
+  assert.equal(elements.dndOffBtn.style.display, "none");
+
+  storedState = { dndUntil: Date.now() + 120_000 };
   docListeners.DOMContentLoaded();
   assert.equal(sandbox.document.documentElement.lang, "fr");
   assert.equal(i18nNodes.at(0).textContent, "Enregistrer");
@@ -94,6 +99,13 @@ test("popup.js : initialisation DOM, boutons DND, sauvegarde et réinitialisatio
   elements.resetBtn.listeners.click();
   assert.equal(elements.statusMsg.textContent, "↺ Defaults restored");
   assert.equal(sentMessages.length, 5);
+
+  sandbox.fillForm(null);
+  assert.equal(elements.moveMinutes.value, "30");
+  sandbox.renderDnd({ dndUntil: 1 });
+  assert.equal(elements.dndOffBtn.style.display, "none");
+  sandbox.renderDnd(null);
+  assert.equal(elements.dndOffBtn.style.display, "none");
 
   sandbox.chrome.i18n.getUILanguage = () => "";
   sandbox.applyI18n();

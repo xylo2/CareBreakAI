@@ -10,7 +10,7 @@
 - **Langues supportées** : Français (`fr`), Anglais (`en`), Allemand (`de`), Espagnol (`es`)
 - **Licence** : GNU General Public License v3.0 (`GNU GPL v3`)
 - **Dépôt Open Source & Support** : `https://github.com/xylo2/CareBreakAI`
-- **Politique de confidentialité** : `https://githubusercontent.com/xylo2/CareBreakAI/main/PRIVACY.md`
+- **Politique de confidentialité** : `https://raw.githubusercontent.com/xylo2/CareBreakAI/main/PRIVACY.md`
 
 ---
 
@@ -60,9 +60,10 @@ No personal data collected, no account required, and zero external network reque
 
 ### A. Chrome Web Store (Google)
 - **Archive à téléverser** : `dist/carebreak-chrome-v1.2.0.zip`
-- **Visuels requis** :
+- **Visuels requis (PNG 24 bits sans alpha générés via `python .\tools\generate_store_assets.py`)** :
   - Icône store : `128×128 px` (`icons/icon128.png`)
-  - Captures d'écran : 1 à 5 images en `1280×800 px` ou `640×400 px` (JPEG ou PNG sans alpha)
+  - Petite vignette promotionnelle : `440×280 px` (`dist/store_assets/small-tile-440x280.png`)
+  - Captures d'écran : 1 à 5 images en `1280×800 px` (`dist/store_assets/store-screenshot-1280x800.png`)
 - **Onglet Confidentialité** :
   - *Motif unique* : Aider l'utilisateur à préserver sa santé visuelle, posturale et son rythme de sommeil grâce à des rappels de pause visuels configurables pendant sa navigation.
   - *Justification `storage`* : Enregistrer localement les préférences d'horaires (`careBreakSettings`), l'état des compteurs (`careBreakState`) et les coordonnées des cartes (`careBreakStackPos`, `careBreakLunchPos`).
@@ -75,12 +76,14 @@ No personal data collected, no account required, and zero external network reque
 - **Archive à téléverser** : `dist/carebreak-chrome-v1.2.0.zip` (identique à Chrome)
 - **Visuels requis** :
   - Logo store : `300×300 px` (`dist/store_assets/edge-logo-300x300.png`)
+  - Vignette promotionnelle : `440×280 px` (`dist/store_assets/small-tile-440x280.png`)
   - Captures d'écran : `1280×800 px` (`dist/store_assets/store-screenshot-1280x800.png`)
 - **Notes de certification (Certification notes)** :
   > CareBreak works 100% offline using chrome.storage.local and requires no account or credentials. To test immediately, click the toolbar icon, adjust any interval to 1 minute (or trigger a meal window matching the current local hour), and interact with any webpage.
 
 ### C. Firefox Add-ons — AMO (`addons.mozilla.org`)
 - **Archive à téléverser** : `dist/carebreak-firefox-v1.2.0.zip` (embarque `browser_specific_settings.gecko.id = "carebreak@iclore.fr"` et `background.scripts`)
+- **Visuel promotionnel** : `dist/store_assets/store-screenshot-1280x800.png` (`1280×800 px`)
 - **Code source** : AMO n'exige pas d'archive de sources séparée car le JavaScript n'est ni minifié ni transpilé.
 - **Déclaration de collecte de données (AMO Data Collection)** :
   - Sélectionner **« No, this extension does not collect or transmit any user data »**.

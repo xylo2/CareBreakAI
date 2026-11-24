@@ -50,8 +50,7 @@ class GlobalCareBreak {
       lastActivity: null,
       snoozeUntil: 0,
       dndUntil: 0,
-      nightAlertCount: 0,
-      dismissedTypes: []
+      nightAlertCount: 0
     };
     this.ui = typeof window !== "undefined" && window.CareBreakUI ? new window.CareBreakUI(this) : null;
   }
@@ -87,6 +86,7 @@ class GlobalCareBreak {
     this.settings = { ...this.settings, ...cfg };
     this.syncDom();
   }
+
   getDateKey(d = this.dateFn()) { return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; }
 
   isAfterMidnight(d = this.dateFn()) {
@@ -124,7 +124,7 @@ class GlobalCareBreak {
 
   getNightRepeatMinutes(d = this.dateFn()) {
     const h = d.getHours();
-    if (h >= 2 && h <= this.settings.nightEndHour) return this.settings.nightRepeat2h;
+    if (h >= 2 && h <= Math.max(2, this.settings.nightEndHour)) return this.settings.nightRepeat2h;
     if (h === 1) return this.settings.nightRepeat1h;
     return this.settings.nightRepeat0h;
   }
@@ -146,10 +146,9 @@ class GlobalCareBreak {
     if (!st.moveStart || !st.lastActivity) return [];
     if (now - st.lastActivity >= this.idleResetMs) return [];
     if (now < (st.snoozeUntil || 0) || this.isDndActive()) return [];
-    const dismissed = new Set(st.dismissedTypes || []);
     const alerts = [];
 
-    if (cfg.enableNight && isNight && !dismissed.has("night")) {
+    if (cfg.enableNight && isNight) {
       const h = d.getHours();
       alerts.push({
         type: "night",
@@ -158,29 +157,29 @@ class GlobalCareBreak {
           : this.t("alertNightEarly", null, "🌙 Il est tard : Va te coucher !")
       });
     }
-    if (cfg.enableLunch && this.isLunchTime(d) && !this.hasEatenToday(d) && !dismissed.has("lunch")) {
+    if (cfg.enableLunch && this.isLunchTime(d) && !this.hasEatenToday(d)) {
       if (st.lunchWindowStart && now - st.lunchWindowStart >= this.lunchRepeatMs) {
         alerts.push({ type: "lunch", message: this.t("alertLunch", null, "🍽️ Il est l'heure de déjeuner : pense à aller manger !") });
       }
     }
-    if (cfg.enableDinner && this.isDinnerTime(d) && !this.hasHadDinnerToday(d) && !dismissed.has("dinner")) {
+    if (cfg.enableDinner && this.isDinnerTime(d) && !this.hasHadDinnerToday(d)) {
       if (st.dinnerWindowStart && now - st.dinnerWindowStart >= this.dinnerRepeatMs) {
         alerts.push({ type: "dinner", message: this.t("alertDinner", null, "🍲 Il est l'heure de dîner : pense à faire une vraie pause repas !") });
       }
     }
-    if (cfg.enableWindDown && !isNight && this.isWindDownTime(d) && !this.hasWoundDownToday(d) && !dismissed.has("winddown")) {
+    if (cfg.enableWindDown && !isNight && this.isWindDownTime(d) && !this.hasWoundDownToday(d)) {
       alerts.push({ type: "winddown", message: this.t("alertWindDown", null, "🌇 Fin de journée : pense à clôturer tes tâches et décrocher des écrans") });
     }
-    if (cfg.enableDrink && st.drinkStart && now - st.drinkStart >= this.drinkLimitMs && !dismissed.has("drink")) {
+    if (cfg.enableDrink && st.drinkStart && now - st.drinkStart >= this.drinkLimitMs) {
       alerts.push({ type: "drink", message: this.t("alertDrink", null, "💧 N'oublie pas de boire") });
     }
-    if (cfg.enableMove && !isNight && now - st.moveStart >= this.moveLimitMs && !dismissed.has("move")) {
+    if (cfg.enableMove && !isNight && now - st.moveStart >= this.moveLimitMs) {
       alerts.push({ type: "move", message: this.t("alertMove", null, "🚶 Ton corps a besoin de bouger, même un tout petit peu, lève-toi") });
     }
-    if (cfg.enablePosture && !isNight && st.postureStart && now - st.postureStart >= this.postureLimitMs && !dismissed.has("posture")) {
+    if (cfg.enablePosture && !isNight && st.postureStart && now - st.postureStart >= this.postureLimitMs) {
       alerts.push({ type: "posture", message: this.t("alertPosture", null, "🪑 Posture : redresse le dos, relâche les épaules et décroise les jambes") });
     }
-    if (cfg.enableEyes && !isNight && st.eyesStart && now - st.eyesStart >= this.eyesLimitMs && !dismissed.has("eyes")) {
+    if (cfg.enableEyes && !isNight && st.eyesStart && now - st.eyesStart >= this.eyesLimitMs) {
       alerts.push({ type: "eyes", message: this.t("alertEyes", null, "👀 Pause visuelle (20-20-20) : regarde au loin à 6 m pendant 20 secondes") });
     }
     return alerts;

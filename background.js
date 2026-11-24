@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-
-const STORAGE_KEY = "careBreakState";
-const SETTINGS_KEY = "careBreakSettings";
-const ALARM_NAME = "careBreakTick";
-
+/**
+ * Service Worker Manifest V3 : état global partagé et synchronisé entre tous les onglets.
+ */
 const DEFAULT_SETTINGS = {
   enableMove: true,
   enableDrink: true,
@@ -47,235 +45,190 @@ const DEFAULT_STATE = {
   lastActivity: null,
   snoozeUntil: 0,
   dndUntil: 0,
-  nightAlertCount: 0,
-  dismissedTypes: []
+  nightAlertCount: 0
 };
 
-function sanitizeSettings(raw) {
-  const src = raw && typeof raw === "object" ? raw : {};
-  const clamp = (val, min, max, fallback) => {
-    const n = Number(val);
-    return Number.isFinite(n) ? Math.min(max, Math.max(min, Math.round(n))) : fallback;
-  };
-  const boolVal = (val, fallback) => (typeof val === "boolean" ? val : fallback);
-  const lunchStart = clamp(src.lunchStartHour, 0, 23, DEFAULT_SETTINGS.lunchStartHour);
-  const lunchEnd = clamp(src.lunchEndHour, lunchStart + 1, 24, Math.max(lunchStart + 1, DEFAULT_SETTINGS.lunchEndHour));
-  const dinnerStart = clamp(src.dinnerStartHour, 0, 23, DEFAULT_SETTINGS.dinnerStartHour);
-  const dinnerEnd = clamp(src.dinnerEndHour, dinnerStart + 1, 24, Math.max(dinnerStart + 1, DEFAULT_SETTINGS.dinnerEndHour));
-  return {
-    enableMove: boolVal(src.enableMove, DEFAULT_SETTINGS.enableMove),
-    enableDrink: boolVal(src.enableDrink, DEFAULT_SETTINGS.enableDrink),
-    enableEyes: boolVal(src.enableEyes, DEFAULT_SETTINGS.enableEyes),
-    enablePosture: boolVal(src.enablePosture, DEFAULT_SETTINGS.enablePosture),
-    enableLunch: boolVal(src.enableLunch, DEFAULT_SETTINGS.enableLunch),
-    enableDinner: boolVal(src.enableDinner, DEFAULT_SETTINGS.enableDinner),
-    enableWindDown: boolVal(src.enableWindDown, DEFAULT_SETTINGS.enableWindDown),
-    enableNight: boolVal(src.enableNight, DEFAULT_SETTINGS.enableNight),
-    moveMinutes: clamp(src.moveMinutes, 1, 480, DEFAULT_SETTINGS.moveMinutes),
-    drinkMinutes: clamp(src.drinkMinutes, 1, 720, DEFAULT_SETTINGS.drinkMinutes),
-    eyesMinutes: clamp(src.eyesMinutes, 1, 240, DEFAULT_SETTINGS.eyesMinutes),
-    postureMinutes: clamp(src.postureMinutes, 1, 480, DEFAULT_SETTINGS.postureMinutes),
-    lunchStartHour: lunchStart,
-    lunchEndHour: lunchEnd,
-    lunchRepeatMinutes: clamp(src.lunchRepeatMinutes, 1, 180, DEFAULT_SETTINGS.lunchRepeatMinutes),
-    dinnerStartHour: dinnerStart,
-    dinnerEndHour: dinnerEnd,
-    dinnerRepeatMinutes: clamp(src.dinnerRepeatMinutes, 1, 180, DEFAULT_SETTINGS.dinnerRepeatMinutes),
-    windDownHour: clamp(src.windDownHour, 0, 23, DEFAULT_SETTINGS.windDownHour),
-    windDownMinute: clamp(src.windDownMinute, 0, 59, DEFAULT_SETTINGS.windDownMinute),
-    nightStartHour: clamp(src.nightStartHour, 0, 23, DEFAULT_SETTINGS.nightStartHour),
-    nightEndHour: clamp(src.nightEndHour, 0, 12, DEFAULT_SETTINGS.nightEndHour),
-    nightEndMinute: clamp(src.nightEndMinute, 0, 59, DEFAULT_SETTINGS.nightEndMinute),
-    nightRepeat0h: clamp(src.nightRepeat0h, 1, 120, DEFAULT_SETTINGS.nightRepeat0h),
-    nightRepeat1h: clamp(src.nightRepeat1h, 1, 120, DEFAULT_SETTINGS.nightRepeat1h),
-    nightRepeat2h: clamp(src.nightRepeat2h, 1, 120, DEFAULT_SETTINGS.nightRepeat2h),
-    idleResetMinutes: clamp(src.idleResetMinutes, 1, 240, DEFAULT_SETTINGS.idleResetMinutes)
-  };
+function clampInt(val, min, max, fallback) {
+  const n = Number(val);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(n)));
 }
-function getDateKey(d = new Date()) {
+
+function sanitizeSettings(raw = {}) {
+  const s = { ...DEFAULT_SETTINGS, ...(raw && typeof raw === "object" ? raw : {}) };
+  for (const k of ["enableMove", "enableDrink", "enableEyes", "enablePosture", "enableLunch", "enableDinner", "enableWindDown", "enableNight"]) {
+    s[k] = typeof s[k] === "boolean" ? s[k] : DEFAULT_SETTINGS[k];
+  }
+  s.moveMinutes = clampInt(s.moveMinutes, 1, 240, DEFAULT_SETTINGS.moveMinutes);
+  s.drinkMinutes = clampInt(s.drinkMinutes, 1, 720, DEFAULT_SETTINGS.drinkMinutes);
+  s.eyesMinutes = clampInt(s.eyesMinutes, 1, 180, DEFAULT_SETTINGS.eyesMinutes);
+  s.postureMinutes = clampInt(s.postureMinutes, 1, 240, DEFAULT_SETTINGS.postureMinutes);
+  s.lunchStartHour = clampInt(s.lunchStartHour, 0, 22, DEFAULT_SETTINGS.lunchStartHour);
+  s.lunchEndHour = clampInt(s.lunchEndHour, s.lunchStartHour + 1, 23, Math.max(s.lunchStartHour + 1, DEFAULT_SETTINGS.lunchEndHour));
+  s.lunchRepeatMinutes = clampInt(s.lunchRepeatMinutes, 1, 180, DEFAULT_SETTINGS.lunchRepeatMinutes);
+  s.dinnerStartHour = clampInt(s.dinnerStartHour, 0, 22, DEFAULT_SETTINGS.dinnerStartHour);
+  s.dinnerEndHour = clampInt(s.dinnerEndHour, s.dinnerStartHour + 1, 23, Math.max(s.dinnerStartHour + 1, DEFAULT_SETTINGS.dinnerEndHour));
+  s.dinnerRepeatMinutes = clampInt(s.dinnerRepeatMinutes, 1, 180, DEFAULT_SETTINGS.dinnerRepeatMinutes);
+  s.windDownHour = clampInt(s.windDownHour, 15, 23, DEFAULT_SETTINGS.windDownHour);
+  s.windDownMinute = clampInt(s.windDownMinute, 0, 59, DEFAULT_SETTINGS.windDownMinute);
+  s.nightStartHour = clampInt(s.nightStartHour, 0, 23, DEFAULT_SETTINGS.nightStartHour);
+  s.nightEndHour = clampInt(s.nightEndHour, 0, 12, DEFAULT_SETTINGS.nightEndHour);
+  s.nightEndMinute = clampInt(s.nightEndMinute, 0, 59, DEFAULT_SETTINGS.nightEndMinute);
+  s.nightRepeat0h = clampInt(s.nightRepeat0h, 1, 60, DEFAULT_SETTINGS.nightRepeat0h);
+  s.nightRepeat1h = clampInt(s.nightRepeat1h, 1, 60, DEFAULT_SETTINGS.nightRepeat1h);
+  s.nightRepeat2h = clampInt(s.nightRepeat2h, 1, 60, DEFAULT_SETTINGS.nightRepeat2h);
+  s.idleResetMinutes = clampInt(s.idleResetMinutes, 1, 120, DEFAULT_SETTINGS.idleResetMinutes);
+  return s;
+}
+
+function cleanState(raw = {}) {
+  const merged = { ...DEFAULT_STATE, ...(raw && typeof raw === "object" ? raw : {}) };
+  delete merged.dismissedTypes;
+  return merged;
+}
+
+function getDateKey(d) {
   return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 }
 
-function isAfterMidnight(d = new Date(), cfg = DEFAULT_SETTINGS) {
-  const s = sanitizeSettings(cfg);
+function isAfterMidnight(d, cfg = DEFAULT_SETTINGS) {
   const mins = d.getHours() * 60 + d.getMinutes();
-  const startMins = s.nightStartHour * 60;
-  const endMins = s.nightEndHour * 60 + s.nightEndMinute;
+  const startMins = cfg.nightStartHour * 60;
+  const endMins = cfg.nightEndHour * 60 + cfg.nightEndMinute;
   if (startMins <= endMins) return mins >= startMins && mins < endMins;
   return mins >= startMins || mins < endMins;
 }
 
-function isLunchTime(d = new Date(), cfg = DEFAULT_SETTINGS) {
-  const s = sanitizeSettings(cfg);
+function isLunchTime(d, cfg = DEFAULT_SETTINGS) {
   const h = d.getHours();
-  return h >= s.lunchStartHour && h < s.lunchEndHour;
+  return h >= cfg.lunchStartHour && h < cfg.lunchEndHour;
 }
 
-function isDinnerTime(d = new Date(), cfg = DEFAULT_SETTINGS) {
-  const s = sanitizeSettings(cfg);
+function isDinnerTime(d, cfg = DEFAULT_SETTINGS) {
   const h = d.getHours();
-  return h >= s.dinnerStartHour && h < s.dinnerEndHour;
+  return h >= cfg.dinnerStartHour && h < cfg.dinnerEndHour;
 }
 
-function getNightRepeatMs(d = new Date(), cfg = DEFAULT_SETTINGS) {
-  const s = sanitizeSettings(cfg);
+function getNightRepeatMs(d, cfg = DEFAULT_SETTINGS) {
   const h = d.getHours();
-  if (h >= 2 && h <= s.nightEndHour) return s.nightRepeat2h * 60 * 1000;
-  if (h === 1) return s.nightRepeat1h * 60 * 1000;
-  return s.nightRepeat0h * 60 * 1000;
-}
-
-async function loadSettings() {
-  const res = await chrome.storage.local.get(SETTINGS_KEY);
-  return sanitizeSettings(res[SETTINGS_KEY]);
-}
-
-async function loadState() {
-  const res = await chrome.storage.local.get(STORAGE_KEY);
-  return { ...DEFAULT_STATE, ...(res[STORAGE_KEY] || {}) };
-}
-
-async function saveState(state) {
-  await chrome.storage.local.set({ [STORAGE_KEY]: state });
-  return state;
+  if (h >= 2 && h <= Math.max(2, cfg.nightEndHour)) return cfg.nightRepeat2h * 60 * 1000;
+  if (h === 1) return cfg.nightRepeat1h * 60 * 1000;
+  return cfg.nightRepeat0h * 60 * 1000;
 }
 
 function applyActivity(state, now = Date.now(), d = new Date(), cfg = DEFAULT_SETTINGS) {
-  const s = sanitizeSettings(cfg);
-  const idleResetMs = s.idleResetMinutes * 60 * 1000;
-  const isIdle = state.lastActivity && (now - state.lastActivity >= idleResetMs);
-  if (!state.moveStart || isIdle) {
-    state.moveStart = now;
-    state.eyesStart = now;
-    state.postureStart = now;
-    state.snoozeUntil = 0;
-    if (isIdle) {
-      state.nightAlertCount = 0;
-      state.dismissedTypes = [];
-    }
+  const next = cleanState(state);
+  const idleLimitMs = (cfg.idleResetMinutes || 15) * 60 * 1000;
+  const isIdleBreak = !next.lastActivity || (now - next.lastActivity >= idleLimitMs);
+
+  if (isIdleBreak) {
+    next.moveStart = now;
+    next.eyesStart = now;
+    next.postureStart = now;
+    next.nightAlertCount = 0;
   }
-  if (!state.drinkStart) state.drinkStart = now;
-  if (!state.eyesStart) state.eyesStart = now;
-  if (!state.postureStart) state.postureStart = now;
-  if (!isAfterMidnight(d, s)) {
-    state.nightAlertCount = 0;
-    state.dismissedTypes = state.dismissedTypes.filter((t) => t !== "night");
-  }
-  const today = getDateKey(d);
-  if (isLunchTime(d, s) && state.lunchTakenDate !== today) {
-    if (!state.lunchWindowStart || isIdle) state.lunchWindowStart = now;
+  if (!next.drinkStart) next.drinkStart = now;
+  if (!next.eyesStart) next.eyesStart = now;
+  if (!next.postureStart) next.postureStart = now;
+
+  if (isLunchTime(d, cfg) && next.lunchTakenDate !== getDateKey(d)) {
+    if (!next.lunchWindowStart) next.lunchWindowStart = now;
   } else {
-    state.lunchWindowStart = null;
-    state.dismissedTypes = state.dismissedTypes.filter((t) => t !== "lunch");
+    next.lunchWindowStart = null;
   }
-  if (isDinnerTime(d, s) && state.dinnerTakenDate !== today) {
-    if (!state.dinnerWindowStart || isIdle) state.dinnerWindowStart = now;
+
+  if (isDinnerTime(d, cfg) && next.dinnerTakenDate !== getDateKey(d)) {
+    if (!next.dinnerWindowStart) next.dinnerWindowStart = now;
   } else {
-    state.dinnerWindowStart = null;
-    state.dismissedTypes = state.dismissedTypes.filter((t) => t !== "dinner");
+    next.dinnerWindowStart = null;
   }
-  state.lastActivity = now;
-  return state;
+
+  next.lastActivity = now;
+  return next;
 }
-function applyAcknowledge(state, type, now = Date.now(), d = new Date(), cfg = DEFAULT_SETTINGS) {
-  const s = sanitizeSettings(cfg);
-  state.lastActivity = now;
-  const dismissed = new Set(state.dismissedTypes || []);
-  dismissed.add(type);
-  const today = getDateKey(d);
-  if (type === "lunch" || type === "dinner") {
-    state.moveStart = now;
-    state.drinkStart = now;
-    state.eyesStart = now;
-    state.postureStart = now;
-    if (type === "lunch") {
-      state.lunchWindowStart = null;
-      state.lunchTakenDate = today;
-      state.nightAlertCount = 0;
-    } else {
-      state.dinnerWindowStart = null;
-      state.dinnerTakenDate = today;
+
+function applyAcknowledge(state, alertType, now = Date.now(), d = new Date(), cfg = DEFAULT_SETTINGS) {
+  const next = cleanState(state);
+  const moveLimitMs = (cfg.moveMinutes || 30) * 60 * 1000;
+
+  if (alertType === "lunch") {
+    next.lunchTakenDate = getDateKey(d);
+    next.lunchWindowStart = null;
+  } else if (alertType === "dinner") {
+    next.dinnerTakenDate = getDateKey(d);
+    next.dinnerWindowStart = null;
+  } else if (alertType === "winddown") {
+    next.windDownDoneDate = getDateKey(d);
+  } else if (alertType === "night") {
+    next.snoozeUntil = now + getNightRepeatMs(d, cfg);
+  } else if (alertType === "drink") {
+    next.drinkStart = now;
+    if (!next.moveStart || (now - next.moveStart >= moveLimitMs)) {
+      next.moveStart = now;
     }
-    state.snoozeUntil = 0;
-    ["move", "drink", "eyes", "posture"].forEach((k) => dismissed.add(k));
-  } else if (type === "winddown") {
-    state.windDownDoneDate = today;
-  } else if (type === "night") {
-    state.moveStart = now;
-    state.snoozeUntil = now + getNightRepeatMs(d, s);
-  } else if (type === "drink") {
-    state.drinkStart = now;
-    if (state.moveStart && now - state.moveStart >= s.moveMinutes * 60 * 1000) {
-      state.moveStart = now;
-      dismissed.add("move");
-    }
-    state.snoozeUntil = 0;
-  } else if (type === "eyes") {
-    state.eyesStart = now;
-    state.snoozeUntil = 0;
-  } else if (type === "posture") {
-    state.postureStart = now;
-    state.snoozeUntil = 0;
-  } else if (type === "move") {
-    state.moveStart = now;
-    state.eyesStart = now;
-    state.postureStart = now;
-    dismissed.add("eyes");
-    dismissed.add("posture");
-    state.snoozeUntil = 0;
+  } else if (alertType === "eyes") {
+    next.eyesStart = now;
+  } else if (alertType === "posture") {
+    next.postureStart = now;
+  } else if (alertType === "move") {
+    next.moveStart = now;
+    next.postureStart = now;
   }
-  state.dismissedTypes = Array.from(dismissed);
-  return state;
+  next.lastActivity = now;
+  return next;
+}
+
+async function getAllData() {
+  const data = await chrome.storage.local.get(["careBreakState", "careBreakSettings"]);
+  const settings = sanitizeSettings(data.careBreakSettings);
+  const state = cleanState(data.careBreakState);
+  return { state, settings };
 }
 
 async function handleAction(msg) {
-  const cfg = await loadSettings();
-  let state = await loadState();
+  const { state: prevState, settings } = await getAllData();
   const now = Date.now();
   const d = new Date();
+  let state = prevState;
+
   if (msg.type === "BREAK_ACTIVITY") {
-    state = applyActivity(state, now, d, cfg);
-    return { state: await saveState(state), settings: cfg };
+    state = applyActivity(prevState, now, d, settings);
+  } else if (msg.type === "BREAK_ACK") {
+    state = applyAcknowledge(prevState, msg.alertType, now, d, settings);
+  } else if (msg.type === "BREAK_NIGHT_SHOWN") {
+    state = { ...prevState, nightAlertCount: (prevState.nightAlertCount || 0) + 1 };
+  } else if (msg.type === "BREAK_SET_DND") {
+    const mins = Number(msg.minutes) || 0;
+    state = { ...prevState, dndUntil: mins > 0 ? now + mins * 60 * 1000 : 0 };
+  } else if (msg.type === "BREAK_SAVE_SETTINGS") {
+    const clean = sanitizeSettings(msg.settings);
+    await chrome.storage.local.set({ careBreakSettings: clean });
+    return { state, settings: clean };
   }
-  if (msg.type === "BREAK_ACK") {
-    state = applyAcknowledge(state, msg.alertType, now, d, cfg);
-    return { state: await saveState(state), settings: cfg };
-  }
-  if (msg.type === "BREAK_NIGHT_SHOWN") {
-    state.nightAlertCount = (state.nightAlertCount || 0) + 1;
-    state.dismissedTypes = (state.dismissedTypes || []).filter((t) => t !== "night");
-    return { state: await saveState(state), settings: cfg };
-  }
-  if (msg.type === "BREAK_SET_DND") {
-    const mins = Math.max(0, Math.round(Number(msg.minutes) || 0));
-    state.dndUntil = mins > 0 ? now + mins * 60 * 1000 : 0;
-    return { state: await saveState(state), settings: cfg };
-  }
-  if (msg.type === "BREAK_SAVE_SETTINGS") {
-    const nextCfg = sanitizeSettings(msg.settings);
-    await chrome.storage.local.set({ [SETTINGS_KEY]: nextCfg });
-    return { state, settings: nextCfg };
-  }
-  return { state, settings: cfg };
+
+  await chrome.storage.local.set({ careBreakState: state });
+  return { state, settings };
 }
 
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.alarms.create(ALARM_NAME, { periodInMinutes: 0.5 });
-});
-chrome.runtime.onStartup.addListener(() => {
-  chrome.alarms.create(ALARM_NAME, { periodInMinutes: 0.5 });
-});
+async function initBackground() {
+  chrome.alarms.create("careBreakTick", { periodInMinutes: 0.5 });
+  const { state, settings } = await getAllData();
+  await chrome.storage.local.set({ careBreakState: state, careBreakSettings: settings });
+}
+
+chrome.runtime.onInstalled.addListener(() => { initBackground(); });
+chrome.runtime.onStartup.addListener(() => { initBackground(); });
+
 chrome.alarms.onAlarm.addListener(async (alarm) => {
-  if (alarm.name === ALARM_NAME) {
-    const st = await loadState();
-    if (st.dndUntil && Date.now() >= st.dndUntil) {
-      st.dndUntil = 0;
-      await saveState(st);
-    }
+  if (alarm.name !== "careBreakTick") return;
+  const { state } = await getAllData();
+  if (state.dndUntil && Date.now() >= state.dndUntil) {
+    await chrome.storage.local.set({ careBreakState: { ...state, dndUntil: 0 } });
   }
 });
+
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-  if (!msg || !String(msg.type || "").startsWith("BREAK_")) return;
+  if (!msg || typeof msg.type !== "string" || !msg.type.startsWith("BREAK_")) return;
   handleAction(msg).then(sendResponse);
   return true;
 });

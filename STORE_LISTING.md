@@ -1,10 +1,12 @@
 # Fiche Chrome Web Store — CareBreak
 
+> **Note** : La fiche unifiée complète pour **Chrome Web Store, Microsoft Edge et Firefox (AMO)** est maintenue dans `STORE_LISTINGS_ALL.md`.
+
 ## Informations générales
 - **Catégorie recommandée** : Productivité (Productivity) ou Bien-être / Santé
 - **Langues** : Français, Anglais (défaut), Allemand, Espagnol
 - **Modèle économique** : Gratuit & Open Source (GNU GPL v3)
-- **URL de politique de confidentialité** : lien brut GitHub vers `PRIVACY.md`
+- **URL de politique de confidentialité** : `https://raw.githubusercontent.com/xylo2/CareBreakAI/main/PRIVACY.md`
 
 ---
 
@@ -68,7 +70,8 @@ No personal data collected, no account required, and zero external network reque
 ---
 
 ## Liste de contrôle avant création du `.zip`
-1. Exécuter les tests unitaires : `node --test tools/CareBreakAI/tests/break_guard.test.js`
+1. Exécuter les tests unitaires : `python .\tools\run_tests_clip.py`
 2. Vérifier la présence des icônes : `icons/icon16.png`, `icons/icon48.png`, `icons/icon128.png`
-3. Compresser **le contenu** du dossier `tools/CareBreakAI/` (avec `manifest.json` et `LICENSE` à la racine du `.zip`, en excluant `tests/`, `PRIVACY.md` et `STORE_LISTING.md`).
-4. Préparer 1 à 3 captures d'écran au format **1280×800 px** (ex. bannière 20-20-20, pastille repas et popup de configuration).
+3. Générer les packages `.zip` et les visuels PNG 24 bits sans alpha :
+   - `python .\tools\build_zip.py` (`dist/carebreak-chrome-v1.2.0.zip`, `dist/carebreak-firefox-v1.2.0.zip`)
+   - `python .\tools\generate_store_assets.py` (`edge-logo-300x300.png`, `small-tile-440x280.png`, `store-screenshot-1280x800.png`)

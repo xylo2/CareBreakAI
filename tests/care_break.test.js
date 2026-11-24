@@ -55,12 +55,17 @@ test("GlobalCareBreak et CareBreakUI : alertes, DOM, drag-and-drop et minuteur",
   assert.equal(guard.formatDuration(60), "1 h");
   assert.equal(guard.formatDuration(90), "1 h 30");
   assert.equal(guard.formatDuration(0), "1 min");
+  assert.equal(guard.formatDuration("bad"), "1 min");
   guard.applySettings(null);
   assert.equal(guard.getMealProgress("lunch"), 0.5);
   assert.equal(guard.getMealProgress("dinner"), 0);
   assert.equal(guard.isAfterMidnight(new Date(2026, 10, 24, 3, 0)), true);
+  guard.applySettings({ nightStartHour: 1, nightEndHour: 5, nightEndMinute: 0 });
+  assert.equal(guard.isAfterMidnight(new Date(2026, 10, 24, 3, 0)), true);
+  guard.applySettings({ nightStartHour: 23, nightEndHour: 6, nightEndMinute: 30 });
   assert.equal(guard.getAlertSvg("unknown").includes("<svg"), true);
   guard.applyStackPosition(null);
+  guard.setStackPosition({ x: 15, y: 25 });
 
   guard.setState({
     moveStart: fakeNow - 40 * 60_000,
@@ -69,25 +74,39 @@ test("GlobalCareBreak et CareBreakUI : alertes, DOM, drag-and-drop et minuteur",
     postureStart: fakeNow - 46 * 60_000,
     lunchWindowStart: fakeNow - 35 * 60_000,
     lastActivity: fakeNow
-  });
+  }, { enableMove: true });
   assert.deepEqual(Array.from(guard.getActiveAlerts().map((a) => a.type)), ["lunch", "drink", "move", "posture", "eyes"]);
   guard.syncDom();
   guard.syncDom();
 
   const stack = allNodes.find((n) => n.className === "gmc-break-stack");
+  guard.setStackPosition({ x: 25, y: 35 });
   stack.listeners.pointerdown({ button: 1 });
   stack.listeners.pointerdown({ button: 0, clientX: 120, clientY: 100 });
   winListeners.pointermove({ clientX: 150, clientY: 140 });
   winListeners.pointerup();
   assert.equal(savedStorage.length, 1);
+
+  stack.listeners.pointerdown({ button: 0, clientX: 120, clientY: 100 });
+  guard.ui.customStackPos = null;
+  winListeners.pointerup();
+  assert.equal(savedStorage.length, 1);
+
+  guard.setStackPosition({ x: 10, y: 10 });
+  stack.offsetWidth = 0;
+  stack.offsetHeight = 0;
+  guard.applyStackPosition(stack);
+  stack.offsetWidth = 520;
+  stack.offsetHeight = 160;
+  guard.setStackPosition(null);
+
+  const savedWin = sandbox.window;
+  delete sandbox.window;
   guard.setStackPosition({ x: 10, y: 10 });
   guard.applyStackPosition(stack);
+  guard.ui.makeStackDraggable({ __gmcDragBound: false });
   guard.setStackPosition(null);
-  delete sandbox.window.innerWidth;
-  delete sandbox.window.innerHeight;
-  guard.setStackPosition({ x: 10, y: 10 });
-  guard.applyStackPosition(stack);
-  guard.setStackPosition(null);
+  sandbox.window = savedWin;
 
   const eyeBanner = allNodes.find((n) => n.dataset.gmcBreakType === "eyes");
   const btns = eyeBanner.children.at(1).children;
@@ -97,39 +116,73 @@ test("GlobalCareBreak et CareBreakUI : alertes, DOM, drag-and-drop et minuteur",
   assert.equal(timers.at(1).cleared, true);
   assert.ok(acked.includes("eyes"));
 
+  btns.at(0).listeners.click();
+  btns.at(1).listeners.click();
+  assert.equal(timers.at(2).cleared, true);
+
   allNodes.find((n) => n.dataset.gmcBreakType === "move").children.at(1).children.at(0).listeners.click();
   assert.ok(acked.includes("move"));
 
   fakeDate = new Date(2026, 10, 24, 20, 30, 0);
-  guard.setState({ dinnerWindowStart: fakeNow - 35 * 60_000, dismissedTypes: [] });
+  guard.setState({ dinnerWindowStart: fakeNow - 35 * 60_000 });
   assert.deepEqual(Array.from(guard.getActiveAlerts().map((a) => a.type)), ["dinner", "winddown", "drink", "move", "posture", "eyes"]);
   guard.syncDom();
   guard.syncDom();
 
+  fakeDate = new Date(2026, 10, 25, 0, 15, 0);
+  guard.setState({ nightAlertCount: 0 });
+  guard.syncDom();
+  assert.equal(nightShown, 1);
+  allNodes.find((n) => n.dataset.gmcBreakType === "night" && !n.removed).remove();
+
   fakeDate = new Date(2026, 10, 25, 2, 15, 0);
-  guard.setState({ nightAlertCount: 5, dismissedTypes: [] });
+  guard.setState({ nightAlertCount: 5 });
   assert.equal(guard.getNightRepeatMinutes(), 2);
   assert.equal(guard.getNightRepeatMinutes(new Date(2026, 10, 25, 1, 15, 0)), 5);
   assert.equal(guard.getNightRepeatMinutes(new Date(2026, 10, 24, 23, 30, 0)), 10);
   guard.syncDom();
-  assert.equal(nightShown, 1);
-  assert.equal(allNodes.find((n) => n.dataset.gmcBreakType === "night").classList.contains("gmc-break-fullscreen"), true);
+  assert.equal(nightShown, 2);
+  const activeNight = allNodes.find((n) => n.dataset.gmcBreakType === "night" && !n.removed);
+  assert.equal(activeNight.classList.contains("gmc-break-fullscreen"), true);
+  guard.applyNightEscalation(activeNight, activeNight.children.at(0).children.at(0), activeNight.children.at(0).children.at(1), activeNight.children.at(1).children.at(0), 2);
+
+  stack.querySelector = () => ({ className: "gmc-break-fullscreen" });
+  guard.applyStackPosition(stack);
+  stack.querySelector = () => null;
+
+  guard.renderBanner({ type: "customFallback", message: "Custom alert" });
+  const customBanner = allNodes.find((n) => n.dataset.gmcBreakType === "customFallback");
+  assert.equal(customBanner.children.at(1).children.at(0).textContent, "✅ OK");
+  delete customBanner.dataset.gmcBreakType;
+  guard.syncDom();
 
   guard.setState({ dndUntil: fakeNow + 3600_000 });
   assert.equal(guard.getActiveAlerts().length, 0);
   guard.setState({ dndUntil: 0, lastActivity: fakeNow - 20 * 60_000 });
   assert.equal(guard.getActiveAlerts().length, 0);
-  guard.setState({ moveStart: fakeNow, lastActivity: fakeNow, dismissedTypes: ["move"] });
+  guard.setState({ moveStart: fakeNow, lastActivity: fakeNow });
   guard.syncDom();
 
+  const savedDoc = sandbox.document;
+  delete sandbox.document;
+  guard.setStackPosition({ x: 5, y: 5 });
+  guard.syncDom();
+  sandbox.document = savedDoc;
+
+  const savedBody = sandbox.document.body;
+  sandbox.document.body = null;
+  assert.equal(guard.getContainer(), null);
+  guard.renderBanner({ type: "move", message: "test" });
+  sandbox.document.body = savedBody;
+
+  const savedUiClass = sandbox.window.CareBreakUI;
+  delete sandbox.window.CareBreakUI;
   const bareGuard = new sandbox.window.GlobalCareBreak();
+  assert.equal(bareGuard.ui, null);
+  sandbox.window.CareBreakUI = savedUiClass;
+
   bareGuard.onAcknowledge("move");
   bareGuard.onNightShown();
-  sandbox.document.body = null;
-  assert.equal(bareGuard.getContainer(), null);
-  bareGuard.renderBanner({ type: "move", message: "test" });
-
-  bareGuard.ui = null;
   assert.equal(bareGuard.getAlertSvg("move"), "");
   assert.equal(bareGuard.getContainer(), null);
   bareGuard.applyStackPosition(null);

@@ -56,8 +56,9 @@ python .\tools\generate_store_assets.py
 
 - **Chrome Web Store & Microsoft Edge Add-ons** : téléverser `dist/carebreak-chrome-v1.2.0.zip` (Manifest V3 standard avec `service_worker`).
 - **Firefox Add-ons (AMO)** : téléverser `dist/carebreak-firefox-v1.2.0.zip` (Manifest V3 adapté automatiquement avec `background.scripts` et `browser_specific_settings.gecko.id = "carebreak@iclore.fr"`).
-- **Visuels générés** (`python .\tools\generate_store_assets.py`) :
+- **Visuels générés en PNG 24 bits sans alpha** (`python .\tools\generate_store_assets.py`) :
   - `dist/store_assets/edge-logo-300x300.png` (logo store `300×300 px` requis par Microsoft Edge Add-ons).
+  - `dist/store_assets/small-tile-440x280.png` (vignette promotionnelle `440×280 px` pour Chrome Web Store & Edge).
   - `dist/store_assets/store-screenshot-1280x800.png` (aperçu promotionnel `1280×800 px` compatible Chrome, Edge et Firefox).
 
 Les fiches descriptives complètes, justifications des permissions et listes de contrôle pour chaque boutique sont disponibles dans `STORE_LISTINGS_ALL.md` (et `PRIVACY.md` pour l'URL de confidentialité).
@@ -127,8 +128,9 @@ python .\tools\generate_store_assets.py
 
 - **Chrome Web Store & Microsoft Edge Add-ons**: upload `dist/carebreak-chrome-v1.2.0.zip` (standard Manifest V3 with `service_worker`).
 - **Firefox Add-ons (AMO)**: upload `dist/carebreak-firefox-v1.2.0.zip` (Manifest V3 automatically adapted with `background.scripts` and `browser_specific_settings.gecko.id = "carebreak@iclore.fr"`).
-- **Generated Store Assets** (`python .\tools\generate_store_assets.py`):
+- **Generated 24-bit Alpha-Free PNG Store Assets** (`python .\tools\generate_store_assets.py`):
   - `dist/store_assets/edge-logo-300x300.png` (`300×300 px` store logo required by Microsoft Edge Add-ons).
+  - `dist/store_assets/small-tile-440x280.png` (`440×280 px` small promotional tile for Chrome Web Store & Edge).
   - `dist/store_assets/store-screenshot-1280x800.png` (`1280×800 px` promotional preview compatible with Chrome, Edge, and Firefox).
 
 Full store descriptions, permission justifications, and submission checklists for each store are available in `STORE_LISTINGS_ALL.md` (along with `PRIVACY.md` for the privacy policy URL).
