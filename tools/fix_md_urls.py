@@ -1,6 +1,7 @@
 # Commandes pip à exécuter : Aucune dépendance externe requise (bibliothèque standard uniquement)
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 from typing import Dict, List, Tuple
@@ -20,8 +21,17 @@ def get_canonical_urls() -> Tuple[str, str, str, str]:
     return repo, privacy, badge, ci_url
 
 
+def get_manifest_version(root_dir: Path = ROOT_DIR) -> str:
+    manifest_path: Path = root_dir / "manifest.json"
+    if not manifest_path.is_file():
+        return "1.2.1"
+    data: Dict[str, object] = json.loads(manifest_path.read_text(encoding="utf-8"))
+    return str(data.get("version", "1.2.1"))
+
+
 def repair_markdown_urls(root_dir: Path = ROOT_DIR) -> Dict[str, int]:
     repo, privacy, badge, ci_url = get_canonical_urls()
+    version: str = get_manifest_version(root_dir)
     scheme: str = "https" + "://"
     gh: str = scheme + "github" + ".com"
     updated: Dict[str, int] = {}
@@ -35,6 +45,8 @@ def repair_markdown_urls(root_dir: Path = ROOT_DIR) -> Dict[str, int]:
         content = re.sub(r"https://(?::/+)?(?:raw\.)?githubusercontent\.com(?:/xylo2/CareBreakAI/main/PRIVACY\.md)?", privacy, content)
         content = re.sub(r"https://github\.com(?:/xylo2/CareBreakAI)*(\.git|\)|`|\b)", rf"{repo}\1", content)
         content = content.replace(".\n### Detailed Description", ".\n\n### Detailed Description")
+        content = re.sub(r"carebreak-(chrome|firefox)-v\d+\.\d+\.\d+\.zip", rf"carebreak-\1-v{version}.zip", content)
+        content = re.sub(r"(\*\*Version\*\* : `)\d+\.\d+\.\d+(`)", rf"\g<1>{version}\2", content)
         if content != original:
             md_path.write_text(content, encoding="utf-8")
             updated[rel_path] = 1
