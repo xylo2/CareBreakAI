@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CareBreak</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      width: 376px;
+      margin: 0;
+      padding: 12px;
+      background: #0f172a;
+      color: #f8fafc;
+    }
+    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .title { font-weight: 700; font-size: 15px; color: #f8fafc; }
+    .badge {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+    }
+    .card { background: #1e293b; border-radius: 8px; padding: 9px 11px; margin-bottom: 8px; }
+    .dnd-bar { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .dnd-status { font-size: 11px; font-weight: 600; color: #e2e8f0; }
+    .dnd-btns { display: flex; gap: 5px; }
+    .btn-dnd { background: #334155; color: #f8fafc; padding: 4px 8px; font-size: 11px; flex: 0 0 auto; }
+    .btn-dnd:hover { background: #475569; }
+    .btn-dnd-stop { background: #dc2626; color: #ffffff; padding: 4px 8px; font-size: 11px; flex: 0 0 auto; }
+    .section-title { font-size: 12px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .toggle-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+    .toggle-lbl { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: #e2e8f0; cursor: pointer; margin: 0; }
+    .toggle-lbl input[type="checkbox"] { width: auto; margin: 0; accent-color: #38bdf8; }
+    .c-move { color: #34d399; }
+    .c-eyes { color: #2dd4bf; }
+    .c-lunch { color: #fb923c; }
+    .c-night { color: #c084fc; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+    label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 2px; }
+    input[type="number"] {
+      width: 100%;
+      box-sizing: border-box;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 5px;
+      color: #f8fafc;
+      padding: 4px 6px;
+      font-size: 12px;
+      transition: opacity 0.15s ease;
+    }
+    input[type="number"]:disabled { opacity: 0.4; cursor: not-allowed; }
+    input[type="number"]:focus { outline: none; border-color: #38bdf8; }
+    button:focus-visible, input[type="checkbox"]:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
+    .actions { display: flex; gap: 8px; margin-top: 8px; }
+    button { flex: 1; border: none; border-radius: 6px; padding: 7px 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .btn-save { background: #16a34a; color: #ffffff; }
+    .btn-save:hover { background: #15803d; }
+    .btn-reset { background: #334155; color: #e2e8f0; flex: 0 0 auto; }
+    .btn-reset:hover { background: #475569; }
+    .status-msg { margin-top: 6px; font-size: 12px; font-weight: 600; text-align: center; color: #4ade80; min-height: 16px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span class="title">CareBreak</span>
+    <span class="badge" data-i18n="popupBadge">Alerts &amp; Schedules</span>
+  </div>
+  <div class="card">
+    <div class="dnd-bar">
+      <span id="dndStatus" class="dnd-status" data-i18n="dndInactive">🔔 Alerts active</span>
+      <div class="dnd-btns">
+        <button id="dnd1hBtn" class="btn-dnd" type="button" data-i18n="dndPause1h">Pause 1 h</button>
+        <button id="dnd2hBtn" class="btn-dnd" type="button" data-i18n="dndPause2h">2 h</button>
+        <button id="dndOffBtn" class="btn-dnd-stop" type="button" style="display:none;" data-i18n="dndResume">Resume</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title c-move" data-i18n="secMoveDrink">🚶 Movement &amp; Hydration</div>
+    <div class="toggle-row">
+      <label class="toggle-lbl"><input id="enableMove" type="checkbox" /> <span data-i18n="lblMove">Move</span></label>
+      <label class="toggle-lbl"><input id="enableDrink" type="checkbox" /> <span data-i18n="lblDrink">Drink</span></label>
+    </div>
+    <div class="grid-3">
+      <div>
+        <label for="moveMinutes" data-i18n="fldMoveMin">Move (min)</label>
+        <input id="moveMinutes" type="number" min="1" max="480" />
+      </div>
+      <div>
+        <label for="drinkMinutes" data-i18n="fldDrinkMin">Drink (min)</label>
+        <input id="drinkMinutes" type="number" min="1" max="720" />
+      </div>
+      <div>
+        <label for="idleResetMinutes" data-i18n="fldIdleMin">Idle reset (min)</label>
+        <input id="idleResetMinutes" type="number" min="1" max="240" />
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="section-title c-eyes" data-i18n="secEyesPosture">👀 Eye Break (20-20-20) &amp; Posture</div>
+    <div class="toggle-row">
+      <label class="toggle-lbl"><input id="enableEyes" type="checkbox" /> <span data-i18n="lblEyes">20-20-20 Eyes</span></label>
+      <label class="toggle-lbl"><input id="enablePosture" type="checkbox" /> <span data-i18n="lblPosture">Posture</span></label>
+    </div>
+    <div class="grid-2">
+      <div>
+        <label for="eyesMinutes" data-i18n="fldEyesMin">20-20-20 Eyes (min)</label>
+        <input id="eyesMinutes" type="number" min="1" max="240" />
+      </div>
+      <div>
+        <label for="postureMinutes" data-i18n="fldPostureMin">Posture (min)</label>
+        <input id="postureMinutes" type="number" min="1" max="480" />
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title c-lunch" data-i18n="secMeals">🍽️ Meals (Lunch &amp; Dinner)</div>
+    <div class="toggle-row">
+      <label class="toggle-lbl"><input id="enableLunch" type="checkbox" /> <span data-i18n="lblLunch">Lunch</span></label>
+      <label class="toggle-lbl"><input id="enableDinner" type="checkbox" /> <span data-i18n="lblDinner">Dinner</span></label>
+    </div>
+    <div class="grid-3" style="margin-bottom: 6px;">
+      <div>
+        <label for="lunchStartHour" data-i18n="fldLunchStart">Lunch start (h)</label>
+        <input id="lunchStartHour" type="number" min="0" max="23" />
+      </div>
+      <div>
+        <label for="lunchEndHour" data-i18n="fldLunchEnd">Lunch end (h)</label>
+        <input id="lunchEndHour" type="number" min="1" max="24" />
+      </div>
+      <div>
+        <label for="lunchRepeatMinutes" data-i18n="fldLunchRep">Lunch delay (min)</label>
+        <input id="lunchRepeatMinutes" type="number" min="1" max="180" />
+      </div>
+    </div>
+    <div class="grid-3">
+      <div>
+        <label for="dinnerStartHour" data-i18n="fldDinnerStart">Dinner start (h)</label>
+        <input id="dinnerStartHour" type="number" min="0" max="23" />
+      </div>
+      <div>
+        <label for="dinnerEndHour" data-i18n="fldDinnerEnd">Dinner end (h)</label>
+        <input id="dinnerEndHour" type="number" min="1" max="24" />
+      </div>
+      <div>
+        <label for="dinnerRepeatMinutes" data-i18n="fldDinnerRep">Dinner delay (min)</label>
+        <input id="dinnerRepeatMinutes" type="number" min="1" max="180" />
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title c-night" data-i18n="secNight">🌇 Wind-Down &amp; Bedtime</div>
+    <div class="toggle-row">
+      <label class="toggle-lbl"><input id="enableWindDown" type="checkbox" /> <span data-i18n="lblWindDown">Wind-down</span></label>
+      <label class="toggle-lbl"><input id="enableNight" type="checkbox" /> <span data-i18n="lblNight">Bedtime (night)</span></label>
+    </div>
+    <div class="grid-2" style="margin-bottom: 6px;">
+      <div>
+        <label for="windDownHour" data-i18n="fldWindHour">Wind-down (h)</label>
+        <input id="windDownHour" type="number" min="0" max="23" />
+      </div>
+      <div>
+        <label for="windDownMinute" data-i18n="fldWindMin">Wind-down (min)</label>
+        <input id="windDownMinute" type="number" min="0" max="59" />
+      </div>
+    </div>
+    <div class="grid-3" style="margin-bottom: 6px;">
+      <div>
+        <label for="nightStartHour" data-i18n="fldNightStart">Night start (h)</label>
+        <input id="nightStartHour" type="number" min="0" max="23" />
+      </div>
+      <div>
+        <label for="nightEndHour" data-i18n="fldNightEndH">Night end (h)</label>
+        <input id="nightEndHour" type="number" min="0" max="12" />
+      </div>
+      <div>
+        <label for="nightEndMinute" data-i18n="fldNightEndM">Night end (min)</label>
+        <input id="nightEndMinute" type="number" min="0" max="59" />
+      </div>
+    </div>
+    <div class="grid-3">
+      <div>
+        <label for="nightRepeat0h" data-i18n="fldNightRep0">Before 1am (min)</label>
+        <input id="nightRepeat0h" type="number" min="1" max="120" />
+      </div>
+      <div>
+        <label for="nightRepeat1h" data-i18n="fldNightRep1">At 1am (min)</label>
+        <input id="nightRepeat1h" type="number" min="1" max="120" />
+      </div>
+      <div>
+        <label for="nightRepeat2h" data-i18n="fldNightRep2">From 2am (min)</label>
+        <input id="nightRepeat2h" type="number" min="1" max="120" />
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button id="saveBtn" class="btn-save" type="button" data-i18n="btnSave">Save</button>
+    <button id="resetPosBtn" class="btn-reset" type="button" data-i18n="btnPositions">Positions</button>
+    <button id="resetBtn" class="btn-reset" type="button" data-i18n="btnDefault">Defaults</button>
+  </div>
+  <div id="statusMsg" class="status-msg" role="status" aria-live="polite"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

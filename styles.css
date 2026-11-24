@@ -1,0 +1,254 @@
+.gmc-break-stack {
+  position: fixed;
+  top: 68px;
+  right: 20px;
+  z-index: 2147483647;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 16px;
+  background: transparent !important;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 76px);
+  overflow-y: auto;
+  pointer-events: none;
+}
+
+.gmc-break-stack.gmc-dragging .gmc-break-banner {
+  cursor: grabbing;
+  opacity: 0.92;
+}
+
+.gmc-break-stack:has(.gmc-break-fullscreen) {
+  top: 0 !important;
+  right: 0 !important;
+  left: auto !important;
+  padding: 0;
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+.gmc-break-banner {
+  pointer-events: auto;
+  box-sizing: border-box;
+  width: 520px;
+  max-width: calc(100vw - 48px);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: #1e1b4b;
+  background-clip: padding-box;
+  color: #f8fafc;
+  border: 2px solid #818cf8;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.48);
+  font-family: 'Google Sans', Roboto, Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  transition: background 1.2s ease, border-color 1.2s ease;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.gmc-break-banner[data-gmc-break-type="move"] {
+  background: linear-gradient(135deg, #064e3b, #065f46);
+  background-clip: padding-box;
+  border: 3px solid #34d399;
+  color: #ecfdf5;
+  box-shadow: 0 16px 40px rgba(5, 150, 105, 0.5);
+}
+
+.gmc-break-banner[data-gmc-break-type="drink"] {
+  background: linear-gradient(135deg, #0c4a6e, #0369a1);
+  background-clip: padding-box;
+  border: 3px solid #38bdf8;
+  color: #f0f9ff;
+  box-shadow: 0 16px 40px rgba(2, 132, 199, 0.5);
+}
+
+.gmc-break-banner[data-gmc-break-type="eyes"] {
+  background: linear-gradient(135deg, #042f2e, #115e59);
+  background-clip: padding-box;
+  border: 3px solid #2dd4bf;
+  color: #f0fdfa;
+  box-shadow: 0 16px 40px rgba(13, 148, 136, 0.5);
+}
+
+.gmc-break-banner[data-gmc-break-type="posture"] {
+  background: linear-gradient(135deg, #1e1b4b, #312e81);
+  background-clip: padding-box;
+  border: 3px solid #818cf8;
+  color: #eef2ff;
+  box-shadow: 0 16px 40px rgba(79, 70, 229, 0.5);
+}
+
+.gmc-break-banner[data-gmc-break-type="winddown"] {
+  background: linear-gradient(135deg, #4c0519, #881337);
+  background-clip: padding-box;
+  border: 3px solid #fb7185;
+  color: #fff1f2;
+  box-shadow: 0 16px 40px rgba(225, 29, 72, 0.55);
+}
+.gmc-break-banner[data-gmc-break-type="lunch"],
+.gmc-break-banner[data-gmc-break-type="dinner"] {
+  width: 620px;
+  background: linear-gradient(135deg, #431407, #9a3412);
+  background-clip: padding-box;
+  border: 3px solid #fb923c;
+  border-radius: 20px;
+  padding: 24px 26px;
+  color: #fff7ed;
+  font-size: 19px;
+  font-weight: 700;
+  box-shadow: 0 20px 50px rgba(234, 88, 12, 0.65);
+}
+.gmc-break-banner[data-gmc-break-type="lunch"] .gmc-break-icon,
+.gmc-break-banner[data-gmc-break-type="dinner"] .gmc-break-icon {
+  width: 68px;
+  height: 68px;
+}
+
+.gmc-break-banner[data-gmc-break-type="lunch"] .gmc-break-btn-reset,
+.gmc-break-banner[data-gmc-break-type="dinner"] .gmc-break-btn-reset {
+  padding: 13px 24px;
+  font-size: 17px;
+  border-radius: 10px;
+}
+
+.gmc-break-banner.gmc-break-night {
+  background: linear-gradient(135deg, #2e1065, #581c87);
+  background-clip: padding-box;
+  border: 3px solid #f43f5e;
+  color: #fdf4ff;
+}
+
+.gmc-break-banner.gmc-break-fullscreen {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  cursor: default;
+}
+
+.gmc-break-body {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.gmc-break-banner.gmc-break-fullscreen .gmc-break-body {
+  flex-direction: column;
+  gap: 18px;
+}
+
+.gmc-break-icon {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.gmc-break-icon svg,
+.gmc-lunch-pill-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.gmc-break-msg {
+  line-height: 1.4;
+  flex: 1;
+}
+
+.gmc-break-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.gmc-break-btn-reset,
+.gmc-break-btn-timer {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #16a34a;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+}
+
+.gmc-break-btn-timer { background: #0f766e; border: 1px solid #5eead4; }
+.gmc-break-btn-timer:disabled { opacity: 0.9; cursor: default; }
+.gmc-break-banner[data-gmc-break-type="move"] .gmc-break-btn-reset { background: #10b981; color: #022c22; }
+.gmc-break-banner[data-gmc-break-type="drink"] .gmc-break-btn-reset { background: #0284c7; color: #ffffff; }
+.gmc-break-banner[data-gmc-break-type="eyes"] .gmc-break-btn-reset { background: #14b8a6; color: #042f2e; }
+.gmc-break-banner[data-gmc-break-type="posture"] .gmc-break-btn-reset { background: #6366f1; color: #ffffff; }
+.gmc-break-banner[data-gmc-break-type="winddown"] .gmc-break-btn-reset { background: #e11d48; color: #ffffff; }
+.gmc-break-banner[data-gmc-break-type="lunch"] .gmc-break-btn-reset,
+.gmc-break-banner[data-gmc-break-type="dinner"] .gmc-break-btn-reset { background: #ea580c; color: #ffffff; }
+.gmc-break-banner.gmc-break-night .gmc-break-btn-reset { background: #e11d48; color: #ffffff; }
+
+.gmc-break-btn-reset:focus-visible,
+.gmc-break-btn-timer:focus-visible,
+.gmc-lunch-pill-done-btn:focus-visible {
+  outline: 3px solid #fef08a;
+  outline-offset: 3px;
+}
+
+.gmc-break-lunch-pill {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 2147483645;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px 12px 22px;
+  min-height: 64px;
+  width: max-content;
+  max-width: calc(100vw - 24px);
+  white-space: nowrap;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 3px solid #fb923c;
+  background: linear-gradient(135deg, #431407, #9a3412);
+  background-clip: padding-box;
+  color: #fff7ed;
+  font-family: 'Google Sans', Roboto, Arial, sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  box-shadow: 0 12px 30px rgba(154, 52, 18, 0.55);
+  transition: background 1.2s ease, border-color 1.2s ease, box-shadow 1.2s ease;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.gmc-lunch-pill-done-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-family: 'Google Sans', Roboto, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  background: #16a34a;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.gmc-lunch-pill-icon { width: 36px; height: 36px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; }
+.gmc-break-lunch-pill.gmc-dragging { cursor: grabbing; opacity: 0.92; }
