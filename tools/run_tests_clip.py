@@ -12,6 +12,10 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
 ROOT_DIR: Path = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from tools.fix_urls import repair_repo_urls
 
 
 class ClipboardTestRunner:
@@ -160,6 +164,10 @@ class ClipboardTestRunner:
         return rc, f"[Python] {' | '.join(summary) if summary else 'OK'}" if rc == 0 else f"[Python] ÉCHEC :\n{out}"
 
     def run(self, report_file: str = "", coverage_file: str = "") -> int:
+        url_updates: Dict[str, int] = repair_repo_urls(self.project_root)
+        fixed_files: List[str] = [f for f, changed in url_updates.items() if changed]
+        if fixed_files:
+            print(f"[fix_urls] Mis à jour : {', '.join(fixed_files)}", flush=True)
         node_exe: Optional[str] = self.find_node_binary(self.project_root)
         if not node_exe:
             print("Node.js introuvable (.venv ou PATH).", file=sys.stderr)

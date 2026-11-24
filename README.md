@@ -61,17 +61,16 @@ python .\tools\generate_store_assets.py
   - `dist/store_assets/small-tile-440x280.png` (vignette promotionnelle `440×280 px` pour Chrome Web Store & Edge).
   - `dist/store_assets/store-screenshot-1280x800.png` (aperçu promotionnel `1280×800 px` compatible Chrome, Edge et Firefox).
 
-Les fiches descriptives complètes, justifications des permissions et listes de contrôle pour chaque boutique sont disponibles dans `STORE_LISTINGS_ALL.md` (et `PRIVACY.md` pour l'URL de confidentialité).
+La procédure complète de création d'une release et de déploiement sur le Chrome Web Store est détaillée dans `RELEASE.md`. Les fiches descriptives, justifications des permissions et listes de contrôle pour chaque boutique sont disponibles dans `STORE_LISTINGS_ALL.md` (et `PRIVACY.md` pour l'URL de confidentialité).
 
 ## Structure & Licence
 
 - Racine du dépôt (`manifest.json`, `background.js`, `care_break_ui.js`, `care_break.js`, `content.js`, `popup.html`, `popup.js`, `styles.css`, `_locales/`) : code source de l'extension.
 - `tests/` : suite de tests unitaires modulaires (`background.test.js`, `care_break.test.js`, `content.test.js`, `popup.test.js`, `test_build_zip.py`).
-- `tools/` : outillage Python (`run_tests_clip.py`, `build_zip.py`, `generate_store_assets.py`).
+- `tools/` : outillage Python (`run_tests_clip.py`, `build_zip.py`, `generate_store_assets.py`, `fix_urls.py`).
 - `.github/workflows/ci.yml` : intégration continue et publication automatique des releases sur GitHub.
-- `STORE_LISTINGS_ALL.md` & `PRIVACY.md` : modèles de fiches de publication et politique de confidentialité.
+- `RELEASE.md`, `STORE_LISTINGS_ALL.md` & `PRIVACY.md` : guide de release, fiches de publication et politique de confidentialité.
 - Licence libre **GNU GPL v3** (`LICENSE`).
-
 ---
 
 # CareBreak (English)
@@ -133,13 +132,13 @@ python .\tools\generate_store_assets.py
   - `dist/store_assets/small-tile-440x280.png` (`440×280 px` small promotional tile for Chrome Web Store & Edge).
   - `dist/store_assets/store-screenshot-1280x800.png` (`1280×800 px` promotional preview compatible with Chrome, Edge, and Firefox).
 
-Full store descriptions, permission justifications, and submission checklists for each store are available in `STORE_LISTINGS_ALL.md` (along with `PRIVACY.md` for the privacy policy URL).
+The complete step-by-step release creation and Chrome Web Store deployment guide is available in `RELEASE.md`. Full store descriptions, permission justifications, and submission checklists for each store are available in `STORE_LISTINGS_ALL.md` (along with `PRIVACY.md` for the privacy policy URL).
 
 ## Project Structure & License
 
 - Repository root (`manifest.json`, `background.js`, `care_break_ui.js`, `care_break.js`, `content.js`, `popup.html`, `popup.js`, `styles.css`, `_locales/`): extension source code.
 - `tests/`: modular unit test suite (`background.test.js`, `care_break.test.js`, `content.test.js`, `popup.test.js`, `test_build_zip.py`).
-- `tools/`: Python tooling (`run_tests_clip.py`, `build_zip.py`, `generate_store_assets.py`).
+- `tools/`: Python tooling (`run_tests_clip.py`, `build_zip.py`, `generate_store_assets.py`, `fix_urls.py`).
 - `.github/workflows/ci.yml`: continuous integration and automated GitHub release workflow.
-- `STORE_LISTINGS_ALL.md` & `PRIVACY.md`: store listing templates and privacy policy.
+- `RELEASE.md`, `STORE_LISTINGS_ALL.md` & `PRIVACY.md`: release guide, store listing templates, and privacy policy.
 - Licensed under **GNU GPL v3** (`LICENSE`).

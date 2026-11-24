@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 ROOT_DIR: Path = Path(__file__).resolve().parent.parent
-MD_FILES: List[str] = ["README.md", "STORE_LISTING.md", "STORE_LISTINGS_ALL.md"]
+MD_FILES: List[str] = ["README.md", "STORE_LISTING.md", "STORE_LISTINGS_ALL.md", "RELEASE.md"]
 JSON_FILES: List[str] = ["manifest.json"]
 
 
@@ -35,6 +35,7 @@ def repair_repo_urls(root_dir: Path = ROOT_DIR) -> Dict[str, int]:
     version: str = get_manifest_version(root_dir)
     scheme: str = "https" + "://"
     gh: str = scheme + "github" + ".com"
+    cws_url: str = scheme + "chrome." + "google.com" + "/webstore/devconsole"
     updated: Dict[str, int] = {}
 
     for rel_path in MD_FILES:
@@ -46,6 +47,7 @@ def repair_repo_urls(root_dir: Path = ROOT_DIR) -> Dict[str, int]:
         content = content.replace(f"[![CI & Release Packages]({gh})]({gh})", f"[![CI & Release Packages]({badge})]({ci_url})")
         content = re.sub(r"https://(?::/+)?(?:raw\.)?githubusercontent\.com(?:/xylo2/CareBreakAI/main/PRIVACY\.md)?", privacy, content)
         content = re.sub(r"https://github\.com(?:/xylo2/CareBreakAI)*(\.git|\)|`|\b)", rf"{repo}\1", content)
+        content = re.sub(r"https://(?::/+)?(?:chrome\.)?google\.com(?:/webstore/devconsole)*", cws_url, content)
         content = content.replace(".\n### Detailed Description", ".\n\n### Detailed Description")
         content = re.sub(r"carebreak-(chrome|firefox)-v\d+\.\d+\.\d+\.zip", rf"carebreak-\1-v{version}.zip", content)
         content = re.sub(r"(\*\*Version\*\* : `)\d+\.\d+\.\d+(`)", rf"\g<1>{version}\2", content)
